@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using CitizenFX.Core;
-
 using static CitizenFX.Core.Native.API;
-
 using static vMenuShared.ConfigManager;
 
 namespace vMenuClient
@@ -16,7 +13,6 @@ namespace vMenuClient
         private static int MovingSpeed { get; set; } = 0;
         private static int Scale = -1;
         private static bool FollowCamMode { get; set; } = true;
-
 
         private readonly List<string> speeds = new()
         {
@@ -38,11 +34,12 @@ namespace vMenuClient
         internal static void SetNoclipActive(bool active)
         {
             NoclipActive = active;
+            
+            TriggerServerEvent("jd-headtags:server:noclip", active);
 
             if (!active)
             {
                 SetScaleformMovieAsNoLongerNeeded(ref Scale);
-
                 Scale = -1;
             }
         }
@@ -51,6 +48,7 @@ namespace vMenuClient
         {
             return NoclipActive;
         }
+
         static string JOAAT(string command)
         {
             uint hash = 0;
@@ -80,6 +78,7 @@ namespace vMenuClient
 
             return hash.ToString("X");
         }
+
         private async Task NoClipHandler()
         {
             if (NoclipActive)
@@ -92,6 +91,7 @@ namespace vMenuClient
 
                 DrawScaleformMovieFullscreen(Scale, 255, 255, 255, 0, 0);
             }
+
             while (NoclipActive)
             {
                 if (!IsHudHidden())
@@ -238,20 +238,17 @@ namespace vMenuClient
                 SetEveryoneIgnorePlayer(Game.PlayerPed.Handle, true);
                 SetPoliceIgnorePlayer(Game.PlayerPed.Handle, true);
 
-                // After the next game tick, reset the entity properties.
                 await Delay(0);
                 FreezeEntityPosition(noclipEntity, false);
                 SetEntityInvincible(noclipEntity, false);
-                SetEntityCollision(noclipEntity, true, true);
+                SetEntityCollision(noclipEntity, true);
 
-                // If the player is not set as invisible by PlayerOptions or if the noclip entity is not the player ped, reset the visibility
                 if (MainMenu.PlayerOptionsMenu == null || !MainMenu.PlayerOptionsMenu.PlayerInvisible || (MainMenu.PlayerOptionsMenu.PlayerInvisible && noclipEntity == Game.PlayerPed.Handle))
                 {
                     SetEntityVisible(noclipEntity, true, false);
                     SetLocalPlayerVisibleLocally(true);
                 }
 
-                // Always reset the alpha.
                 ResetEntityAlpha(noclipEntity);
 
                 SetEveryoneIgnorePlayer(Game.PlayerPed.Handle, false);
